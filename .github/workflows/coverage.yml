@@ -1,0 +1,48 @@
+name: Test and Coverage
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:11
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          cd ./core
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install codecov
+      - name: Run tests and coverage
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: |
+          cd ./core
+          coverage run manage.py test
+          coverage report --skip-covered --show-missing > coverage.txt
+      - name: Upload coverage to Codecov
+        run: |
+          codecov
+      - name: Comment on pull request
+        uses: peter-evans/create-or-update-pull-request-comment@v2
+        with:
+          body: |
+            Coverage report:
+            ```
+            $(cat coverage.txt)
+            ```
+          github_token: ${{ secrets.GITHUB_TOKEN }}
