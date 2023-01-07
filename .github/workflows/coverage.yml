@@ -1,4 +1,4 @@
-name: Test and Coverage
+name: Coverage
 
 on: [push, pull_request]
 
@@ -38,11 +38,11 @@ jobs:
         run: |
           codecov
       - name: Comment on pull request
-        uses: peter-evans/create-or-update-pull-request-comment
+        uses: j-f1/create-or-update-pull-request-comment-v2@v1
         with:
           body: |
             Coverage report:
             ```
-            $(cat coverage.txt)
+            $(cat ./core/coverage.txt)
             ```
           github_token: ${{ secrets.GITHUB_TOKEN }}
