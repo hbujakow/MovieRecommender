@@ -38,7 +38,7 @@ jobs:
         run: |
           codecov
       - name: Comment on pull request
-        uses: peter-evans/create-or-update-pull-request-comment@v2
+        uses: peter-evans/create-or-update-pull-request-comment
         with:
           body: |
             Coverage report:
