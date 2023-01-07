@@ -47,4 +47,3 @@ jobs:
             ```
             $(cat ./core/coverage.txt)
             ```
-          github_token: ${{ secrets.GITHUB_TOKEN }}
