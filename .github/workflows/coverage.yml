@@ -53,5 +53,6 @@ jobs:
           body: |
             Coverage report:
             ```
-            echo ${{ cat ./core/coverage.txt }}
+            echo ${{ `cat ./core/coverage.txt` }}
             ```
+#          edit-mode: replace
