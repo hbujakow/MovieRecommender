@@ -39,8 +39,9 @@ jobs:
           codecov
       - name: Comment on pull request
         uses: peter-evans/create-or-update-comment@v2.1.0
-
         with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: eyes
           body: |
             Coverage report:
             ```
