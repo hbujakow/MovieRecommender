@@ -25,7 +25,7 @@ jobs:
           coverage report -m
       - name: Post test coverage results as a table in pull request comment
         if: success()
-        uses: peter-evans/create-or-update-pull-request-comment@v3
+        uses: peter-evans/create-or-update-comment@v2.1.0
         with:
           body: |
                 Test coverage results:
