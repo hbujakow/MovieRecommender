@@ -19,7 +19,6 @@ jobs:
       - name: Run tests with coverage
         run: |
           cd ./core
-          cd ./core
           coverage run manage.py test
           coverage report --skip-covered --show-missing > coverage.txt
       - name: Upload coverage report
