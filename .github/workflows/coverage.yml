@@ -21,8 +21,8 @@ jobs:
       - name: Run tests and coverage in core directory
         run: |
           cd ./core
-          coverage run -m pytest core/
-          coverage report -m
+          coverage run manage.py test
+          coverage report -m --skip-covered --show-missing
       - name: Post test coverage results as a table in pull request comment
         if: success()
         uses: peter-evans/create-or-update-comment@v2.1.0
