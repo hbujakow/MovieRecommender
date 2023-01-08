@@ -1,56 +1,32 @@
-name: Coverage
-
+name: Test and Coverage
 on: [pull_request]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:11
-        ports: ["5432:5432"]
-        env:
-          POSTGRES_DB: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.8
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9
+
       - name: Install dependencies
         run: |
           cd ./core
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install codecov
-      - name: Run tests and coverage
-        env:
-          POSTGRES_DB: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          python -m pip install -r requirements.txt
+          python -m pip install coverage
+      - name: Run tests with coverage
         run: |
+          cd ./core
           cd ./core
           coverage run manage.py test
           coverage report --skip-covered --show-missing > coverage.txt
-      - name: Upload coverage to Codecov
-        run: |
-          codecov
-      - name: Find Comment
-        uses: peter-evans/find-comment@v2
-        id: fc
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v1
         with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: Build output
-      - name: Comment on pull request
-        uses: peter-evans/create-or-update-comment@v2.1.0
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          reactions: eyes
-          body: |
-            Coverage report:
-            ![Coverage report](https://codecov.io/gh/${{ github.repository }}/branch/${{ github.head_ref }}/graph/badge.svg?token=${{ secrets.CODECOV_TOKEN }})
-#          edit-mode: replace
+          file: coverage.txt
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          name: ${{ github.repository }}
+          branch: ${{ github.ref }}
