@@ -52,5 +52,5 @@ jobs:
           reactions: eyes
           body: |
             Coverage report:
-            `${{cat ./core/coverage.txt}}`
+            ![Coverage report](https://codecov.io/gh/${{ github.repository }}/branch/${{ github.head_ref }}/graph/badge.svg?token=${{ secrets.CODECOV_TOKEN }})
 #          edit-mode: replace
