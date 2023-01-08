@@ -52,5 +52,5 @@ jobs:
           reactions: eyes
           body: |
             Coverage report:
-            `$(cat ./core/coverage.txt)`
+            `${{cat ./core/coverage.txt}}`
 #          edit-mode: replace
