@@ -13,6 +13,8 @@ class Show(models.Model):
     director = models.CharField(max_length=100)
     actors = models.CharField(max_length=500)
     runtime = models.CharField(max_length=50)
+    plot = models.CharField(max_length=500)
+    box_office = models.CharField(max_length=50)
 
     def __str__(self):
         return self.title

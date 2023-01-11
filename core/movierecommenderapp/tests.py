@@ -26,20 +26,22 @@ class ViewTest(TestCase):
     def test_search(self):
         # add a show to the database
         Show.objects.create(
-            movie_id='420',
+            show_id='420',
             title='Test Movie',
             category='Test Category',
             year='2020',
             poster='https://www.test.com',
             director='Test Director',
             actors='Test Actor',
-            runtime='100 min'
+            runtime='100 min',
+            plot='Test Plot',
+            box_office='Test Box Office'
         )
 
         response = self.client.get(reverse('search'), {'q': 'Test Movie'})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Movie')
-        self.assertTemplateUsed(response, 'search_results.html')
+        self.assertTemplateUsed(response, 'api_results.html')
 
         response2 = self.client.get(reverse('search'), {'q': 'Not Existing Movie'})
         self.assertEqual(response2.status_code, 200)
