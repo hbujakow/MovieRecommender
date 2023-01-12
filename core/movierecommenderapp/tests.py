@@ -56,7 +56,7 @@ class ViewTest(TestCase):
             email='user@test',
             password='testpassword')
 
-        response = self.client.post('/signup/', {
+        response = self.client.post(reverse('signup'), {
             'username': 'testuser',
             'firstname': 'test',
             'lastname': 'user',
@@ -65,4 +65,12 @@ class ViewTest(TestCase):
         })
         self.assertContains(response, 'Username already exists')
 
-
+    def test_signup(self):
+        response = self.client.post(reverse('signup'), {
+            'username': 'testuser',
+            'firstname': 'test',
+            'lastname': 'user',
+            'email': 'user@test',
+            'password': 'testpassword'
+        })
+        self.assertRedirects(response, reverse('home'))

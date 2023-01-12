@@ -36,7 +36,7 @@ def signup(request):
         firstname = request.POST['firstname']
         lastname = request.POST['lastname']
         if get_user_model().objects.filter(username=username).exists():
-            return render(request, 'signup.html', {'error': 'Username already exists'})
+            return render(request, 'signUp.html', {'error': 'Username already exists'})
         user = get_user_model().objects.create_user(username=username, email=email, password=password,
                                                     first_name=firstname, last_name=lastname)
         login(request, user)
