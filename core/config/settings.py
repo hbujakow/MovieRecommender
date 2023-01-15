@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "movierecommenderapp",
+    'authentication',
     'crispy_forms',
 ]
 
@@ -102,7 +103,7 @@ else:
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
-AUTH_USER_MODEL = 'movierecommenderapp.User'
+AUTH_USER_MODEL = 'authentication.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -136,7 +137,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 STATICFILES_DIRS = [
-    'movierecommenderapp/static'
+    'config/static'
 ]
 
 # Default primary key field type
