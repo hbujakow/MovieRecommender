@@ -195,8 +195,8 @@ def recommend(request):
 
 @login_required(login_url='login')
 def info(request):
-    # TODO
-    return render(request, 'userInfo.html')
+    user = request.user
+    return render(request, 'userInfo.html', {'user': user})
 
 
 def about(request):
