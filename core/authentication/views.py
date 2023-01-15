@@ -4,7 +4,6 @@ from validate_email import validate_email
 from .models import User
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse
-from helpers.decorators import auth_user_should_not_access
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -44,7 +43,6 @@ def send_activation_email(user, request):
         EmailThread(email).start()
 
 
-@auth_user_should_not_access
 def register(request):
     if request.method == "POST":
         context = {'has_error': False, 'data': request.POST}
@@ -104,7 +102,6 @@ def register(request):
     return render(request, 'authentication/register.html')
 
 
-@auth_user_should_not_access
 def login_user(request):
     if request.method == 'POST':
         context = {'data': request.POST}
