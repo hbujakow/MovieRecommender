@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from validate_email import validate_email
@@ -48,6 +49,8 @@ def register(request):
         context = {'has_error': False, 'data': request.POST}
         email = request.POST.get('email')
         username = request.POST.get('username')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
         password = request.POST.get('password')
         password2 = request.POST.get('password2')
 
@@ -132,11 +135,7 @@ def login_user(request):
 
 def logout_user(request):
     logout(request)
-
-    messages.add_message(request, messages.SUCCESS,
-                         'Successfully logged out')
-
-    return redirect(reverse('login'))
+    return redirect(reverse('home'))
 
 
 def activate_user(request, uidb64, token):
@@ -156,4 +155,4 @@ def activate_user(request, uidb64, token):
                              'Email verified, you can now login')
         return redirect(reverse('login'))
 
-    return render(request, 'authentication/activate-failed.html', {"user": user})
+    return HttpResponse('Someone went wrong with your link')
