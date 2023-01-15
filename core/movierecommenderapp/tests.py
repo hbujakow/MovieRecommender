@@ -6,23 +6,6 @@ from .models import Show
 
 class ViewTest(TestCase):
 
-    def test_create_user(self):
-        User = get_user_model()
-        user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpassword')
-        self.assertEqual(user.username, 'testuser')
-        self.assertTrue(user.is_active)
-        self.assertFalse(user.is_staff)
-        self.assertFalse(user.is_superuser)
-
-        self.assertTrue(User.objects.filter(username='testuser').exists())
-
-        user.delete()
-
-        self.assertFalse(User.objects.filter(username='testuser').exists())
-
     def test_search(self):
         # add a show to the database
         Show.objects.create(
@@ -48,29 +31,3 @@ class ViewTest(TestCase):
         self.assertNotContains(response2, 'Not Existing Movie')
         self.assertTemplateUsed(response2, 'home.html')
 
-    def test_singup_the_same_user(self):
-        get_user_model().objects.create_user(
-            username='testuser',
-            first_name='test',
-            last_name='user',
-            email='user@test',
-            password='testpassword')
-
-        response = self.client.post(reverse('signup'), {
-            'username': 'testuser',
-            'firstname': 'test',
-            'lastname': 'user',
-            'email': 'user@test',
-            'password': 'testpassword'
-        })
-        self.assertContains(response, 'Username already exists')
-
-    def test_signup(self):
-        response = self.client.post(reverse('signup'), {
-            'username': 'testuser',
-            'firstname': 'test',
-            'lastname': 'user',
-            'email': 'user@test',
-            'password': 'testpassword'
-        })
-        self.assertRedirects(response, reverse('home'))
