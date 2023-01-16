@@ -65,7 +65,7 @@ def movie_detail(request, title):
     return render(request, 'movie_detail.html', {'movie': movie, 'is_watched': is_watched})
 
 
-@login_required
+@login_required(login_url='login')
 def recommend(request):
     movie_rating = pd.DataFrame(list(Rating.objects.all().values()))
     movies = pd.DataFrame(list(Show.objects.all().values()))
@@ -149,7 +149,7 @@ def recommend(request):
     return render(request, 'recommend.html', context)
 
 
-@login_required
+@login_required(login_url='login')
 def info(request):
     user = request.user
     return render(request, 'userInfo.html', {'user': user})
@@ -159,7 +159,7 @@ def about(request):
     return render(request, 'about.html')
 
 
-@login_required
+@login_required(login_url='login')
 def list_view(request):
     user_movies = Watched.objects.filter(user=request.user.user)
     user_movies = [movie.show for movie in user_movies]
@@ -168,7 +168,6 @@ def list_view(request):
     return render(request, 'list.html', {'user_movies': list(user_movies)})
 
 
-@login_required
 def save_movie_watched(request):
     if request.method == 'POST':
         show = request.POST.get('movie')
@@ -181,7 +180,6 @@ def save_movie_watched(request):
     return redirect('list')
 
 
-@login_required
 def remove_movie_watched(request):
     if request.method == 'POST':
         show = request.POST.get('movie')
