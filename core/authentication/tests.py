@@ -24,6 +24,8 @@ class TestViews(TestSetup):
         self.user = {
             "username": "username",
             "email": "email@hmail2.com",
+            "first_name": "first_name",
+            "last_name": "last_name",
             "password": "password",
             "password2": "password"
         }
@@ -42,6 +44,8 @@ class TestViews(TestSetup):
         self.user = {
             "username": "username1",
             "email": "email@hmail2.com",
+            "first_name": "first_name",
+            "last_name": "last_name",
             "password": "password",
             "password2": "password"
         }
@@ -49,6 +53,8 @@ class TestViews(TestSetup):
         self.test_user2 = {
             "username": "username11",
             "email": "email@hmail2.com",
+            "first_name": "first_name",
+            "last_name": "last_name",
             "password": "password",
             "password2": "password"
         }

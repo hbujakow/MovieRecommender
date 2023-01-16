@@ -12,6 +12,8 @@ class TestSetup(TestCase):
         self.user = {
             "username": self.faker.name().split(" ")[0],
             "email": self.faker.email(),
+            "first_name": self.faker.name().split(" ")[0],
+            "last_name": self.faker.name().split(" ")[0],
             "password": self.password,
             "password2": self.password
         }
