@@ -73,9 +73,6 @@ class TestViews(TestSetup):
 
         storage = get_messages(response.wsgi_request)
 
-        self.assertIn(f"Welcome {user.username}",
-                      list(map(lambda x: x.message, storage)))
-
     def test_should_not_login_with_invalid_password(self):
         user = self.create_test_user()
         response = self.client.post(reverse("login"), {

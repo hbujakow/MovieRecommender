@@ -126,9 +126,6 @@ def login_user(request):
 
         login(request, user)
 
-        messages.add_message(request, messages.SUCCESS,
-                             f'Welcome {user.username}')
-
         return redirect(reverse('home'))
 
     return render(request, 'authentication/login.html')
@@ -136,7 +133,9 @@ def login_user(request):
 
 def logout_user(request):
     logout(request)
-    return redirect(reverse('home'))
+    messages.add_message(request, messages.SUCCESS,
+                         'Successfully logged out')
+    return redirect(reverse('login'))
 
 
 def activate_user(request, uidb64, token):
