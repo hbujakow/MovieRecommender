@@ -16,17 +16,17 @@
             <input type="range" min="1" max="{{ max_range }}" value="{{ max_range }}//3" class="slider" id="myRange">
             <div id="slider-value">{{ movies|length }}</div>
         </div>
-        <div style="flex-wrap: wrap">
-            {% for movie in movies %}
-                <div style="display: inline-block;">
-                    <figure style="text-align: center">
-                        <a href="{% url 'detail' movie.title %}"><img src="{{ movie.poster }}" width="200"
-                                                                      alt="Poster for {{ movie.title }}"></a>
-                        <figcaption>{{ movie.title }}</figcaption>
-                    </figure>
-                </div>
-            {% endfor %}
-        </div>
+        <div style="overflow-x: scroll; white-space: nowrap;">
+        {% for movie in movies %}
+            <div style="display: inline-block;">
+                <figure style="text-align: center">
+                    <img src="{{ movie.poster }}" width="150">
+                    <figcaption style="font-size: 1.25em">{{ movie.title }}</figcaption>
+                </figure>
+            </div>
+        {% endfor %}
+    </div>
+
     {% endif %}
 
     <script>
