@@ -29,7 +29,7 @@ def index(request):
 def home(request):
     movies = Show.objects.all()
     max_range = min(20, len(movies))
-    rangee = int(request.GET.get('rangee', max_range // 3))
+    rangee = int(request.GET.get('rangee', max_range // 2))
     movies = random.sample(list(movies), rangee)
     if movies == []:
         return render(request, 'home.html')
@@ -111,7 +111,7 @@ def search(request):
     return render(request, 'search_results.html', {'results': results,
                                                    'query': query})
 
-
+@login_required(login_url='login')
 def movie_detail(request, title):
     try:
         movie = save_movie_toDB(title)
@@ -203,7 +203,6 @@ def recommend(request):
         movie_list = ranked_item_score['movie'].iloc[:n_recommendations].astype(int).to_list()
 
     recommendations = movies.loc[movies['id'].isin(movie_list)].to_dict('records')
-    print('rated movies:', number_of_rated_movies)
     context = {'movies': recommendations, 'n_rated_movies': number_of_rated_movies}
     return render(request, 'recommend.html', context)
 
