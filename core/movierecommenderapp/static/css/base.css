@@ -89,11 +89,9 @@ html, body {
   bottom: 0;
   align-items: center;
   background-color: rgb(95, 133, 177);
-  height: 10%;
   width: 100%;
   color:rgb(226, 226, 226);
   text-align: center;
-  margin-top: 10px;
 }
 
 .page-footer > a {
