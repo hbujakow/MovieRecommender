@@ -1,11 +1,12 @@
 import random
 import pandas as pd
 import requests
-from django.contrib.auth import login, authenticate, get_user_model, logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from django.shortcuts import render, HttpResponse, redirect
 from omdb import OMDBClient
 from .models import Show, Rating, Watched
+from django.utils import timezone
 
 omdb_api = OMDBClient(apikey="730a97c3")
 api_url = 'http://www.omdbapi.com/?apikey=730a97c3'
@@ -30,7 +31,7 @@ def home(request):
     return render(request, 'home.html', {'movies': movies, 'max_range': max_range})
 
 
-def save_movie(title):
+def save_movie_toDB(title):
     if Show.objects.filter(title=title).exists():
         return Show.objects.get(title=title)
 
@@ -152,7 +153,17 @@ def recommend(request):
 @login_required(login_url='login')
 def info(request):
     user = request.user
-    return render(request, 'userInfo.html', {'user': user})
+    if user.is_authenticated:
+        now = timezone.now()
+        registration_time = now - user.date_joined
+        registration_time = registration_time.days
+
+    user_movies = Watched.objects.filter(user=request.user.user)
+    time_watched = [int(movie.show.runtime.split(' ')[0]) for movie in user_movies]
+    sum_watched = sum(time_watched)
+
+    return render(request, 'userInfo.html',
+                  {'user': user, 'registration_time': registration_time, 'sum_watched': sum_watched})
 
 
 def about(request):

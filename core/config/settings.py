@@ -144,10 +144,10 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'config/static')]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # EMAIL CONFIG
-EMAIL_FROM_USER = 'movierecommender@hotmail.com'
+EMAIL_FROM_USER = "movierecommender@hotmail.com"#config('EMAIL_FROM_USER', default='')
 EMAIL_HOST = 'smtp.office365.com'
-EMAIL_HOST_USER = 'movierecommender@hotmail.com'
-EMAIL_HOST_PASSWORD = 'Password123!@#'
+EMAIL_HOST_USER = "movierecommender@hotmail.com"#config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = "Password123!@#"#config('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 
