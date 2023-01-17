@@ -24,7 +24,7 @@ def index(request):
 def home(request):
     movies = Show.objects.all()
     max_range = min(20, len(movies))
-    rangee = int(request.GET.get('rangee', max_range // 3))
+    rangee = max(int(request.GET.get('rangee', max_range // 3)), 1)
     movies = random.sample(list(movies), rangee)
     if movies == []:
         return render(request, 'home.html')
