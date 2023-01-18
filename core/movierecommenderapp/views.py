@@ -23,7 +23,7 @@ def index(request):
 def home(request):
     movies = Show.objects.all()
     max_range = min(20, len(movies))
-    rangee = max(int(request.GET.get('rangee', max_range // 2)), 1)    
+    rangee = max(int(request.GET.get('rangee', max_range // 2)), 1)
     if list(movies) == []:
         return render(request, 'home.html')
     movies = random.sample(list(movies), rangee)
@@ -39,7 +39,7 @@ def save_movie_toDB(title):
     if response.json()['Response'] != 'True':
         raise ValueError('Server error')
     # add to DB
-    movie = Show(show=response.json()['imdbID'], title=response.json()['Title'], year=response.json()['Year'],
+    movie = Show(title=response.json()['Title'], year=response.json()['Year'],
                  category=response.json()['Genre'],
                  poster=response.json()['Poster'], director=response.json()['Director'],
                  actors=response.json()['Actors'], runtime=response.json()['Runtime'],
@@ -63,11 +63,11 @@ def movie_detail(request, title):
         return HttpResponse('Server error')
     is_watched = Watched.objects.filter(user=request.user, show=movie).exists()
     # if there are already rating in the DB, show the rating
-    if Rating.objects.filter(user=request.user.user, show=movie.show).exists():
+    if Rating.objects.filter(user=request.user, show=movie).exists():
         return render(request, 'movie_detail.html', {'movie': movie,
                                                      'is_watched': is_watched,
-                                                     'rating': Rating.objects.get(user=request.user.user,
-                                                                                  show=movie.show).rating})
+                                                     'rating': Rating.objects.get(user=request.user,
+                                                                                  show=movie).rating})
     return render(request, 'movie_detail.html', {'movie': movie, 'is_watched': is_watched})
 
 
@@ -75,11 +75,11 @@ def movie_detail(request, title):
 def recommend(request):
     movie_rating = pd.DataFrame(list(Rating.objects.all().values()))
     movies = pd.DataFrame(list(Show.objects.all().values()))
-    current_user_id = request.user.user
+    current_user_id = request.user.id
     n_recommendations = 10  # to set dynamically for user
     number_of_rated_movies = 0
     # if new user not rated any movie, we have to recommend him the highest-rated movies
-    if current_user_id not in movie_rating.user.unique():
+    if current_user_id not in movie_rating.user_id.unique():
         movie_list = (movie_rating.groupby('show').mean()['rating'] * movie_rating.groupby('show').count()['rating']) \
                          .sort_values(ascending=False) \
                          .reset_index()['show'] \
@@ -88,7 +88,7 @@ def recommend(request):
             .to_list()
     else:
         # create similarity standardized matrix using Pearson's correlation coefficients
-        user_ratings = movie_rating.pivot_table(index=['user'], columns=['show'], values='rating')
+        user_ratings = movie_rating.pivot_table(index=['user_id'], columns=['show_id'], values='rating')
         user_ratings_norm = user_ratings.subtract(user_ratings.mean(axis=1), axis='rows')
         user_similarity = user_ratings_norm.T.corr()
 
@@ -165,7 +165,7 @@ def info(request):
         registration_time = now - user.date_joined
         registration_time = registration_time.days
 
-    user_movies = Watched.objects.filter(user=request.user.user)
+    user_movies = Watched.objects.filter(user=request.user)
     time_watched = [int(movie.show.runtime.split(' ')[0]) for movie in user_movies]
     sum_watched = sum(time_watched)
 
@@ -179,7 +179,7 @@ def about(request):
 
 @login_required(login_url='login')
 def list_view(request):
-    user_movies = Watched.objects.filter(user=request.user.user)
+    user_movies = Watched.objects.filter(user=request.user)
     user_movies = [movie.show for movie in user_movies]
     if not Watched.objects.filter(user=request.user).exists():
         return render(request, 'home.html', {'error': 'No movies in your list'})
@@ -210,12 +210,13 @@ def rate_movie(request):
     rating = request.POST.get('rating')
     title = request.POST.get('movie_title')
     movie_id = request.POST.get('movie_id')
+    movie = Show.objects.get(id=movie_id)
     # see if the rating already exists
-    if Rating.objects.filter(user=request.user.user, show=movie_id).exists():
+    if Rating.objects.filter(user=request.user, show=movie).exists():
         # update the rating
-        Rating.objects.filter(user=request.user.user, show=movie_id).update(rating=rating)
+        Rating.objects.filter(user=request.user, show=movie).update(rating=rating)
     else:
         # create a new rating
-        Rating.objects.create(user=request.user.user, show=movie_id, rating=rating)
+        Rating.objects.create(user=request.user, show=movie, rating=rating)
     return redirect('/detail/' + title)
     # return redirect(request.META.get('HTTP_REFERER'))
