@@ -1,19 +1,14 @@
 import random
 import pandas as pd
 import requests
-from django.contrib.auth import login, authenticate, get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, HttpResponse, redirect
 from omdb import OMDBClient
 from .models import Show, Rating, Watched
+from django.utils import timezone
 
 omdb_api = OMDBClient(apikey="730a97c3")
 api_url = 'http://www.omdbapi.com/?apikey=730a97c3'
-
-
-def example(request, title):
-    movies = omdb_api.get(search=title)
-    return render(request, "example.html", {"movies": movies, "title": title})
 
 
 def index(request):
@@ -25,51 +20,14 @@ def index(request):
     return render(request, 'index.html', {'movies': movies})
 
 
-@login_required(login_url='login')
 def home(request):
     movies = Show.objects.all()
     max_range = min(20, len(movies))
-    rangee = int(request.GET.get('rangee', max_range // 2))
-    movies = random.sample(list(movies), rangee)
-    if movies == []:
+    rangee = max(int(request.GET.get('rangee', max_range // 2)), 1)
+    if list(movies) == []:
         return render(request, 'home.html')
+    movies = random.sample(list(movies), rangee)
     return render(request, 'home.html', {'movies': movies, 'max_range': max_range})
-
-
-def signup(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        firstname = request.POST['firstname']
-        lastname = request.POST['lastname']
-        if get_user_model().objects.filter(username=username).exists():
-            return render(request, 'signUp.html', {'error': 'Username already exists'})
-        user = get_user_model().objects.create_user(username=username, email=email, password=password,
-                                                    first_name=firstname, last_name=lastname)
-        login(request, user)
-        return redirect('home')
-    else:
-        return render(request, 'signUp.html')
-
-
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('home')
-        else:
-            return render(request, 'login.html', {'error': 'Invalid username or password'})
-    else:
-        return render(request, 'login.html')
-
-
-def logout_view(request):
-    logout(request)
-    return redirect('index')
 
 
 def save_movie_toDB(title):
@@ -81,7 +39,7 @@ def save_movie_toDB(title):
     if response.json()['Response'] != 'True':
         raise ValueError('Server error')
     # add to DB
-    movie = Show(show=response.json()['imdbID'], title=response.json()['Title'], year=response.json()['Year'],
+    movie = Show(title=response.json()['Title'], year=response.json()['Year'],
                  category=response.json()['Genre'],
                  poster=response.json()['Poster'], director=response.json()['Director'],
                  actors=response.json()['Actors'], runtime=response.json()['Runtime'],
@@ -90,7 +48,6 @@ def save_movie_toDB(title):
     return movie
 
 
-@login_required(login_url='login')
 def search_with_api(request):
     query = request.GET.get('q')
     movies = list(omdb_api.get(search=query))
@@ -99,25 +56,18 @@ def search_with_api(request):
     return render(request, "api_results.html", {"movies": movies, "query": query})
 
 
-@login_required(login_url='login')
-def search(request):
-    query = request.GET.get('q')
-    results = Show.objects.filter(title__contains=query)
-    results = list(results)
-    if results is None or len(results) == 0:
-        # search_for_movies(title) # TODO
-        return render(request, 'home.html', {'error': 'No results found'})
-
-    return render(request, 'search_results.html', {'results': results,
-                                                   'query': query})
-
-@login_required(login_url='login')
 def movie_detail(request, title):
     try:
         movie = save_movie_toDB(title)
     except ValueError:
         return HttpResponse('Server error')
     is_watched = Watched.objects.filter(user=request.user, show=movie).exists()
+    # if there are already rating in the DB, show the rating
+    if Rating.objects.filter(user=request.user, show=movie).exists():
+        return render(request, 'movie_detail.html', {'movie': movie,
+                                                     'is_watched': is_watched,
+                                                     'rating': Rating.objects.get(user=request.user,
+                                                                                  show=movie).rating})
     return render(request, 'movie_detail.html', {'movie': movie, 'is_watched': is_watched})
 
 
@@ -125,20 +75,20 @@ def movie_detail(request, title):
 def recommend(request):
     movie_rating = pd.DataFrame(list(Rating.objects.all().values()))
     movies = pd.DataFrame(list(Show.objects.all().values()))
-    current_user_id = request.user.user
+    current_user_id = request.user.id
     n_recommendations = 10  # to set dynamically for user
     number_of_rated_movies = 0
     # if new user not rated any movie, we have to recommend him the highest-rated movies
-    if current_user_id not in movie_rating.user.unique():
-        movie_list = (movie_rating.groupby('show').mean()['rating'] * movie_rating.groupby('show').count()['rating']) \
+    if current_user_id not in movie_rating.user_id.unique():
+        movie_list = (movie_rating.groupby('show_id').mean()['rating'] * movie_rating.groupby('show_id').count()['rating']) \
                          .sort_values(ascending=False) \
-                         .reset_index()['show'] \
+                         .reset_index()['show_id'] \
                          .iloc[:n_recommendations] \
             .astype(int) \
             .to_list()
     else:
         # create similarity standardized matrix using Pearson's correlation coefficients
-        user_ratings = movie_rating.pivot_table(index=['user'], columns=['show'], values='rating')
+        user_ratings = movie_rating.pivot_table(index=['user_id'], columns=['show_id'], values='rating')
         user_ratings_norm = user_ratings.subtract(user_ratings.mean(axis=1), axis='rows')
         user_similarity = user_ratings_norm.T.corr()
 
@@ -148,11 +98,20 @@ def recommend(request):
         user_similarity.drop(index=current_user_id, inplace=True)
         # set user similarity threshold
         user_similarity_threshold = 0.3
-        n = 10  # number of similar users
+        n = 100  # number of similar users
         # Get top n similar users
         similar_users = user_similarity[user_similarity[current_user_id] > user_similarity_threshold][
                             current_user_id].sort_values(ascending=False).iloc[:n]
-
+        if (list(similar_users) == []):
+            movie_list = (movie_rating.groupby('show_id').mean()['rating'] * movie_rating.groupby('show_id').count()['rating']) \
+            .sort_values(ascending=False) \
+            .reset_index()['show_id'] \
+            .iloc[:n_recommendations] \
+            .astype(int) \
+            .to_list()
+            recommendations = movies.loc[movies['id'].isin(movie_list)].to_dict('records')
+            context = {'movies': recommendations, 'n_rated_movies': number_of_rated_movies}
+            return render(request, 'recommend.html', context)
         # pick movies watched by selected user
         current_user_id_watched = user_ratings_norm[user_ratings_norm.index == current_user_id].dropna(axis=1,
                                                                                                        how='all')
@@ -209,8 +168,18 @@ def recommend(request):
 
 @login_required(login_url='login')
 def info(request):
-    # TODO
-    return render(request, 'userInfo.html')
+    user = request.user
+    if user.is_authenticated:
+        now = timezone.now()
+        registration_time = now - user.date_joined
+        registration_time = registration_time.days
+
+    user_movies = Watched.objects.filter(user=request.user)
+    time_watched = [int(movie.show.runtime.split(' ')[0]) for movie in user_movies]
+    sum_watched = sum(time_watched)
+
+    return render(request, 'userInfo.html',
+                  {'user': user, 'registration_time': registration_time, 'sum_watched': sum_watched})
 
 
 def about(request):
@@ -219,14 +188,13 @@ def about(request):
 
 @login_required(login_url='login')
 def list_view(request):
-    user_movies = Watched.objects.filter(user=request.user.user)
+    user_movies = Watched.objects.filter(user=request.user)
     user_movies = [movie.show for movie in user_movies]
     if not Watched.objects.filter(user=request.user).exists():
         return render(request, 'home.html', {'error': 'No movies in your list'})
     return render(request, 'list.html', {'user_movies': list(user_movies)})
 
 
-@login_required(login_url='login')
 def save_movie_watched(request):
     if request.method == 'POST':
         show = request.POST.get('movie')
@@ -236,13 +204,28 @@ def save_movie_watched(request):
             return render('list.html', {'error': 'Movie already in list'})
         saved_show = Watched(user=user, show=Show.objects.get(title=show))
         saved_show.save()
-    return redirect('list')
+    return redirect(request.META.get('HTTP_REFERER'))
 
 
-@login_required(login_url='login')
 def remove_movie_watched(request):
     if request.method == 'POST':
         show = request.POST.get('movie')
         user = request.user
         Watched.objects.filter(user=user, show=Show.objects.get(title=show)).delete()
-    return redirect('list')
+    return redirect(request.META.get('HTTP_REFERER'))
+
+
+def rate_movie(request):
+    rating = request.POST.get('rating')
+    title = request.POST.get('movie_title')
+    movie_id = request.POST.get('movie_id')
+    movie = Show.objects.get(id=movie_id)
+    # see if the rating already exists
+    if Rating.objects.filter(user=request.user, show=movie).exists():
+        # update the rating
+        Rating.objects.filter(user=request.user, show=movie).update(rating=rating)
+    else:
+        # create a new rating
+        Rating.objects.create(user=request.user, show=movie, rating=rating)
+    return redirect('/detail/' + title)
+    # return redirect(request.META.get('HTTP_REFERER'))

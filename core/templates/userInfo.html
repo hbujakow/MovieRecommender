@@ -1,0 +1,15 @@
+{% extends 'main/base.html' %}
+{% block title %}Account Info{% endblock title %}
+
+{% block content %}
+<div class="info-container" style="margin-left: 2em;">
+    <h2 style="margin-bottom: 1.5em;">Your account details</h2>
+    <p><i>Username:</i> {{ user.username }}</p>
+    <p><i>Email:</i> {{ user.email }}</p>
+    <p><i>First Name:</i> {{ user.first_name }}</p>
+    <p><i>Last Name:</i> {{ user.last_name }}</p>
+
+    <p><i>Time elapsed since your account creation:</i> {{ registration_time }} days</p>
+    <p><i>Your time spent on watching movies:</i> {{ sum_watched }} min</p>
+</div>
+{% endblock %}
