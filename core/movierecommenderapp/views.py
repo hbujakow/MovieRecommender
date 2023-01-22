@@ -80,9 +80,9 @@ def recommend(request):
     number_of_rated_movies = 0
     # if new user not rated any movie, we have to recommend him the highest-rated movies
     if current_user_id not in movie_rating.user_id.unique():
-        movie_list = (movie_rating.groupby('show').mean()['rating'] * movie_rating.groupby('show').count()['rating']) \
+        movie_list = (movie_rating.groupby('show_id').mean()['rating'] * movie_rating.groupby('show_id').count()['rating']) \
                          .sort_values(ascending=False) \
-                         .reset_index()['show'] \
+                         .reset_index()['show_id'] \
                          .iloc[:n_recommendations] \
             .astype(int) \
             .to_list()
@@ -98,11 +98,20 @@ def recommend(request):
         user_similarity.drop(index=current_user_id, inplace=True)
         # set user similarity threshold
         user_similarity_threshold = 0.3
-        n = 10  # number of similar users
+        n = 100  # number of similar users
         # Get top n similar users
         similar_users = user_similarity[user_similarity[current_user_id] > user_similarity_threshold][
                             current_user_id].sort_values(ascending=False).iloc[:n]
-
+        if (list(similar_users) == []):
+            movie_list = (movie_rating.groupby('show_id').mean()['rating'] * movie_rating.groupby('show_id').count()['rating']) \
+            .sort_values(ascending=False) \
+            .reset_index()['show_id'] \
+            .iloc[:n_recommendations] \
+            .astype(int) \
+            .to_list()
+            recommendations = movies.loc[movies['id'].isin(movie_list)].to_dict('records')
+            context = {'movies': recommendations, 'n_rated_movies': number_of_rated_movies}
+            return render(request, 'recommend.html', context)
         # pick movies watched by selected user
         current_user_id_watched = user_ratings_norm[user_ratings_norm.index == current_user_id].dropna(axis=1,
                                                                                                        how='all')
