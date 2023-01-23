@@ -128,3 +128,8 @@ html, body {
 .active {
     color: #e0bf1c;
 }
+
+.main{
+    margin-top: 20px;
+    margin-left: 20px;
+}
