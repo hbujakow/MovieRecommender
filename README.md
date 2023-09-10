@@ -2,6 +2,6 @@
 
 ### Running on docker
 ```
-docker build -t app .
-docker run -p 8000:8000 app
+docker-compose up
 ```
+the app will run on localhost:8000
